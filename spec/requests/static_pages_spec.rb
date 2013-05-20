@@ -1,43 +1,65 @@
 require 'spec_helper'
 
-describe "Static pages" do
+def checkvalue(heading, page_title)
+  # Set the subject of all tests to the current webpage
+  subject { page }
 
+  # Check the h1 and title tag values
+  it { should have_selector('h1',    text: heading) }
+  it { should have_selector('title', text: page_title) }
+end
+
+def testlink(urlText, shortTitle)
+    # Click on the link
+    click_link urlText
+
+    # Make sure the title of the page matches
+    page.should have_selector('title',
+                text: full_title(shortTitle))
+end
+
+describe "Static pages" do
   # Set the subject of all tests to the current webpage
   subject { page }
 
   describe "Home page" do
-    # Visit the root path before each example
+    # Visit the webpage's path before each action
     before { visit root_path }
 
-    it { should have_selector('h1',    text: 'Sample App') }
-    it { should have_selector('title', text: full_title('')) }
+    checkvalue('Sample App', '')
     it { should_not have_selector 'title', text: '| Home' }
   end
 
   describe "Help page" do
-    # Visit the help path before each example
     before { visit help_path }
 
-    it { should have_selector('h1',    text: 'Help') }
-    it { should have_selector('title',
-         text: full_title('Help')) }
+    checkvalue('Help', 'Help')
   end
 
   describe "About page" do
-    # Visit the about path before each example
     before { visit about_path }
 
-    it { should have_selector('h1',    text: 'About') }
-    it { should have_selector('title',
-         text: full_title('About Us')) }
+    checkvalue('About', 'About Us')
   end
 
   describe "Contact page" do
-    # Visit the contact path before each example
     before { visit contact_path }
 
-    it { should have_selector('h1',    text: 'Contact') }
-    it { should have_selector('title',
-         text: full_title('Contact')) }
+    checkvalue('Contact', 'Contact')
+  end
+
+  # Test that some links on certain pages go to the correct
+  # URL
+  it "should have the right links on the layout" do
+      visit root_path
+
+      testlink("About", 'About Us')
+      testlink("Help", 'Help')
+      testlink("Contact", 'Contact')
+
+      click_link "Home"
+
+      testlink("Sign up now!", 'Sign up')
+      testlink("sample app", '')
   end
 end
