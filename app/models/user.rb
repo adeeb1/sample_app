@@ -19,7 +19,7 @@ class User < ActiveRecord::Base
   has_secure_password
 
   # Lowercase the user's email address to ensure uniqueness
-  before_save { |user| user.email = email.downcase }
+  before_save { email.downcase! }
 
   # Validate the user's name
   validates(:name, presence: true, length: { maximum: 50 })
