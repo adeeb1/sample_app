@@ -33,8 +33,7 @@ class User < ActiveRecord::Base
   			            uniqueness: { case_sensitive: false })
 
   # Validate the user's password
-  validates(:password, presence: true,
-  			               length: { minimum: 6 })
+  validates(:password, length: { minimum: 6 })
 
   # Validate that the password confirmation field has been
   # filled out
