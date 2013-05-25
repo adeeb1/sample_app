@@ -53,6 +53,9 @@ describe "UserPages" do
 
         # Make sure the text in the div.alert.alert-success selector is "Welcome"
         it { should have_selector('div.alert.alert-success', text: 'Welcome') }
+
+        # Make sure the "Sign out" link is present
+        it { should have_link('Sign out') }
       end
     end
   end

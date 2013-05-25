@@ -20,6 +20,7 @@ class User < ActiveRecord::Base
 
   # Lowercase the user's email address to ensure uniqueness
   before_save { email.downcase! }
+  before_save :create_remember_token
 
   # Validate the user's name
   validates(:name, presence: true, length: { maximum: 50 })
@@ -38,4 +39,9 @@ class User < ActiveRecord::Base
   # Validate that the password confirmation field has been
   # filled out
   validates(:password_confirmation, presence: true)
+
+  private
+    def create_remember_token
+      self.remember_token = SecureRandom.urlsafe_base64
+    end
 end

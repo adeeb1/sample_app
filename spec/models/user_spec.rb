@@ -24,13 +24,13 @@ describe User do
   subject { @user }
 
   # Test for the existence of the 'name', 'email',
-  # 'password_digest', 'password', and
-  # 'password_confirmation' attributes
+  # 'password_digest', 'password', 'password_confirmation',   # and 'remember_token' attributes
   it { should respond_to(:name) }
   it { should respond_to(:email) }
   it { should respond_to(:password_digest) }
   it { should respond_to(:password) }
   it { should respond_to(:password_confirmation) }
+  it { should respond_to(:remember_token) }
   it { should respond_to(:authenticate) }
 
   it { should be_valid }
@@ -119,6 +119,16 @@ describe User do
   describe "when password doesn't match confirmation" do
     before { @user.password_confirmation = "mismatch" }
     it { should_not be_valid }
+  end
+
+  describe "remember token" do
+    # Save the user
+    before { @user.save }
+
+    # Make sure the user's remember_token is not blank
+    # The below statement is equivalent to:
+    # it { @user.remember_token.should_not be_blank }
+    its(:remember_token) { should_not be_blank }
   end
 
   describe "return value of authenticate method" do

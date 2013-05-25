@@ -16,7 +16,8 @@ class UsersController < ApplicationController
 
   	# Check if we were able to save the user
   	if @user.save
-  		# We were, so redirect the user to his profile page
+  		# We were, so sign in the user and redirect him to his profile page
+      sign_in @user
       flash[:success] = "Welcome to the Sample App!"
       redirect_to @user
   	else # We weren't able to save the user
