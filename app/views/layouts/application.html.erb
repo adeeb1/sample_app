@@ -20,7 +20,14 @@
       
       <%= yield %>
       <%= render 'layouts/footer' %>
-      <%= debug(params) if Rails.env.development? %>
+
+      <!-- Check if we're in the development environment -->
+      <% if Rails.env.development? %>
+        <div>&nbsp;</div>
+        <%= debug(params) %>
+        <p style="margin: 0px;">HTTP Request Method: <%= request.request_method %></p>
+        <p style="margin: 0px, 0px, 0px, 20px;">Unique Request ID: <%= request.uuid %></p>
+      <% end %>
     </div>
   </body>
 </html>

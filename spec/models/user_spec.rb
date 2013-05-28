@@ -33,9 +33,70 @@ describe User do
   it { should respond_to(:remember_token) }
   it { should respond_to(:admin) }
   it { should respond_to(:authenticate) }
+  it { should respond_to(:microposts) }
 
   it { should be_valid }
   it { should_not be_admin }
+
+  describe "micropost associations" do
+    before { @user.save }
+    
+    # Initialize the 'older_micropost' variable immediately with the information specified in the FactoryGirl.create() method
+    let!(:older_micropost) do
+      FactoryGirl.create(:micropost, user: @user, created_at: 1.day.ago)
+    end
+
+    let!(:newer_micropost) do
+      FactoryGirl.create(:micropost, user: @user, created_at: 1.hour.ago)
+    end
+
+    it "should have the right microposts in the right order" do
+      # Order microposts from newest -> older
+      # Also check that the 'microposts' property is an array
+      @user.microposts.should == [newer_micropost, older_micropost]
+    end
+
+    it "should destroy associated microposts" do
+      # Duplicate the user's 'microposts' array and store it in the 'microposts' variable
+      microposts = @user.microposts.dup
+      
+      # Delete the user
+      @user.destroy
+      
+      # Catch any errors should the duplicate ever be accidentally removed 
+      microposts.should_not be_empty
+
+      # Loop through each micropost in the array and make sure it's empty
+      microposts.each do |micropost|
+        Micropost.find_by_id(micropost.id).should be_nil
+      end
+    end
+
+    describe "status" do
+      let(:unfollowed_post) do
+        FactoryGirl.create(:micropost, user: FactoryGirl.create(:user))
+      end
+
+      its(:feed) { should include(newer_micropost) }
+      its(:feed) { should include(older_micropost) }
+      its(:feed) { should_not include(unfollowed_post) }
+    end
+  end
+
+  describe "accessible attributes" do
+    it "should not allow access to admin" do
+      # Expect the nested code to raise the ActiveModel::MassAssignmentSecurity error. This is because a new User object cannot be created with the :admin symbol as a parameter; it is set to false by default and can only be modified after the new User instance has been created
+      expect do
+        # To get the test to fail, remove the 'admin: true' parameter
+
+        newuser = User.new(name: "testuser",
+                           email: "testuser@gmail.com",
+                           password: "foobar",
+                           password_confirmation: "foobar",
+                           admin: true)
+      end.to raise_error(ActiveModel::MassAssignmentSecurity::Error)
+    end
+  end
 
   describe "with admin attribute set to 'true'" do
     before do

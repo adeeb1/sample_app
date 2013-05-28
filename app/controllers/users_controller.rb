@@ -6,29 +6,49 @@ class UsersController < ApplicationController
 
   def show
   	@user = User.find(params[:id])
+    @microposts = @user.microposts.paginate(page: params[:page])
   end
 
   def new
-  	@user = User.new
+    # Check if the user is logged in
+    @user = current_user
+
+    # Check if there is a logged-in user
+    if !@user.nil?
+      # There is, so bring the user to the home page
+      redirect_to root_url
+    else
+      # There isn't, so create a new user
+      @user = User.new
+    end
   end
 
   def create
-  	# Create a new user, specifying the parameters from the
-  	# POST method that were filled out by the user in the
-  	# HTML form. params[:user] is a hash that contains the
-  	# data needed to create a new user
-  	@user = User.new(params[:user])
+    # Check if the user is logged in
+    @user = current_user
 
-  	# Check if we were able to save the user
-  	if @user.save
-  		# We were, so sign in the user and redirect him to his profile page
-      sign_in @user
-      flash[:success] = "Welcome to the Sample App!"
-      redirect_to @user
-  	else # We weren't able to save the user
-  		# Render a new "Create Account" request
-  		render 'new'
-  	end
+    # Check if there is a logged-in user
+    if !@user.nil?
+      # There is, so bring the user to the home page
+      redirect_to root_url
+    else # There isn't a logged-in user
+    	# Create a new user, specifying the parameters from the
+    	# POST method that were filled out by the user in the
+    	# HTML form. params[:user] is a hash that contains the
+    	# data needed to create a new user
+    	@user = User.new(params[:user])
+
+    	# Check if we were able to save the user
+    	if @user.save
+    		# We were, so sign in the user and redirect him to his profile page
+        sign_in @user
+        flash[:success] = "Welcome to the Sample App!"
+        redirect_to @user
+    	else # We weren't able to save the user
+    		# Render a new "Create Account" request
+    		render 'new'
+    	end
+    end
   end
 
   def index
@@ -55,18 +75,30 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    User.find(params[:id]).destroy
-    flash[:success] = "User destroyed."
+    # Find the user that the admin chose to delete
+    theuser = User.find(params[:id])
 
-    redirect_to users_url
+    # Make sure the user the admin chose to delete isn't himself
+    if theuser != current_user then
+      # Store the user's name in a temporary variable
+      usersname = theuser.name
+
+      # Delete the user
+      theuser.destroy
+
+      # State that we just deleted the user
+      flash[:success] = "#{usersname} has been destroyed."
+
+      # Redirect the admin to the "All users" page
+      redirect_to users_url
+    else # The user the admin chose to delete is himself
+      # Redirect the admin to his profile page
+      redirect_to current_user
+    end
   end
 
   private
-    def signed_in_user
-      store_location
-      redirect_to signin_url, notice: "Please sign in." unless signed_in?
-    end
-
+  
     def correct_user
       @user = User.find(params[:id])
       redirect_to(root_path) unless current_user?(@user)

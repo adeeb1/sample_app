@@ -1,0 +1,15 @@
+<li>
+	<span class="content">
+		<%= micropost.content %>
+	</span>
+
+	<span class="timestamp">
+		Posted <%= time_ago_in_words(micropost.created_at) %> ago.
+	</span>
+
+	<!-- Check if the user is the owner of the micropost -->
+	<% if current_user?(micropost.user) %>
+		<!-- The user is, so give him the option to delete the micropost by placing a "delete" link next to it -->
+		<%= link_to "delete", micropost, method: :delete, data: { confirm: "You sure?" }, title: micropost.content %>
+	<% end %>
+</li>

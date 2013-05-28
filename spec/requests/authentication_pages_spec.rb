@@ -10,6 +10,22 @@ describe "Authentication" do
   	it { should have_selector('title', text: 'Sign in') }
   end
 
+  describe "not signed in" do
+    # Navigate to the 'Sign in' page
+    before { visit signin_path }
+
+    # Create a new test user
+    let(:user) { FactoryGirl.create(:user) }
+
+    # Make sure the login links, "Profile," "Settings," and "Sign out" are not visible to the user
+    it { should_not have_link('Profile',  href: user_path(user)) }
+    it { should_not have_link('Settings', href: edit_user_path(user)) }
+    it { should_not have_link('Sign out', href: signout_path) }
+
+    # Make sure the "Sign in" link is visible to the user
+    it { should have_link('Sign in', href: signin_path) }
+  end
+
   describe "signin" do
   	before { visit signin_path }
 
@@ -64,6 +80,18 @@ describe "Authentication" do
       describe "for non-signed-in users" do
         let(:user) { FactoryGirl.create(:user) }
 
+        describe "in the Microposts controller" do
+          describe "submitting to the create action" do
+            before { post microposts_path }
+            specify { response.should redirect_to(signin_path) }
+          end
+
+          describe "submitting to the destroy action" do
+            before { delete micropost_path(FactoryGirl.create(:micropost)) }
+            specify { response.should redirect_to(signin_path) }
+          end
+        end
+
         describe "in the Users controller" do
 
           describe "visiting the edit page" do
@@ -95,6 +123,7 @@ describe "Authentication" do
           end
 
           describe "after signing in" do
+
             it "should render the desired protected page" do
               page.should have_selector('title', text: 'Edit user')
             end

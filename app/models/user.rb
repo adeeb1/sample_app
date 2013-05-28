@@ -18,6 +18,9 @@ class User < ActiveRecord::Base
   # so that we can successfully authenticate the user
   has_secure_password
 
+  # State that each user has multiple microposts. The 'dependent: :destroy' option arranges for the user's microposts to be destroyed when the user itself is destroyed
+  has_many :microposts, dependent: :destroy
+
   # Lowercase the user's email address to ensure uniqueness
   before_save { email.downcase! }
   before_save :create_remember_token
@@ -39,6 +42,13 @@ class User < ActiveRecord::Base
   # Validate that the password confirmation field has been
   # filled out
   validates(:password_confirmation, presence: true)
+
+  # Implementation of micropost status feed
+  def feed
+    # Preliminary implementation
+    # The "?" ensures that the 'id' is properly escaped before being included in the underlying SQL query. This is more secure than inserting the 'id' into the SQL query directly because SQL injection would be possible otherwise
+    Micropost.where("user_id = ?", id)
+  end
 
   private
     def create_remember_token
