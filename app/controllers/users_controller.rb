@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   # Use a before filter to arrange for the signed_in_user method to be called BEFORE the given actions. In this case, invoke signed_in_user before the "index," "edit," "update," and "destroy" actions are performed
-  before_filter :signed_in_user, only: [:index, :edit, :update, :destroy]
+  before_filter :signed_in_user, only: [:index, :edit, :update, :destroy, :following, :followers]
   before_filter :correct_user,   only: [:edit, :update]
   before_filter :admin_user,    only: :destroy
 
@@ -95,6 +95,32 @@ class UsersController < ApplicationController
       # Redirect the admin to his profile page
       redirect_to current_user
     end
+  end
+
+  def following
+    # Set the title of the page
+    @title = "Following"
+    
+    # Get the user
+    @user = User.find(params[:id])
+
+    # Get all of the user's followed users and paginate them
+    @users = @user.followed_users.paginate(page: params[:page])
+
+    render 'show_follow'
+  end
+
+  def followers
+    # Set the title of the page
+    @title = "Followers"
+
+    # Get the user
+    @user = User.find(params[:id])
+
+    # Get all of the user's followers and paginate them
+    @users = @user.followers.paginate(page: params[:page])
+
+    render 'show_follow'
   end
 
   private

@@ -20,6 +20,14 @@ class User < ActiveRecord::Base
 
   # State that each user has multiple microposts. The 'dependent: :destroy' option arranges for the user's microposts to be destroyed when the user itself is destroyed
   has_many :microposts, dependent: :destroy
+  has_many :relationships, foreign_key: "follower_id", dependent: :destroy
+  has_many :followed_users, through: :relationships, source: :followed
+
+  # Include the class name in this association because Rails would look for a ReverseRelationship class otherwise
+  has_many :reverse_relationships, foreign_key: "followed_id", class_name: "Relationship", dependent: :destroy
+
+  # The source is not needed in this case because Rails will singularize "followers" and automatically look for the foreign key, 'follower_id.'
+  has_many :followers, through: :reverse_relationships, source: :follower
 
   # Lowercase the user's email address to ensure uniqueness
   before_save { email.downcase! }
@@ -47,8 +55,24 @@ class User < ActiveRecord::Base
   def feed
     # Preliminary implementation
     # The "?" ensures that the 'id' is properly escaped before being included in the underlying SQL query. This is more secure than inserting the 'id' into the SQL query directly because SQL injection would be possible otherwise
-    Micropost.where("user_id = ?", id)
+    
+    #Micropost.where("user_id = ?", id)
+
+    # Display a feed of microposts for only the users that the user is following
+    Micropost.from_users_followed_by(self)
   end
+
+  def following?(other_user)
+    relationships.find_by_followed_id(other_user.id)
+  end
+
+  def follow!(other_user)
+    relationships.create!(followed_id: other_user.id)
+  end
+
+  def unfollow!(other_user)
+    relationships.find_by_followed_id(other_user.id).destroy
+  end  
 
   private
     def create_remember_token
