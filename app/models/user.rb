@@ -45,11 +45,7 @@ class User < ActiveRecord::Base
   			            uniqueness: { case_sensitive: false })
 
   # Validate the user's password
-  validates(:password, length: { minimum: 6 })
-
-  # Validate that the password confirmation field has been
-  # filled out
-  validates(:password_confirmation, presence: true)
+  validates(:password, length: { minimum: 6, allow_blank: true })
 
   # Implementation of micropost status feed
   def feed
@@ -74,8 +70,30 @@ class User < ActiveRecord::Base
     relationships.find_by_followed_id(other_user.id).destroy
   end  
 
+  def send_password_reset
+    # Generate the password reset token
+    generate_token(:password_reset_token)
+
+    # State the time we sent the password reset request at
+    self.password_reset_sent_at = Time.zone.now
+
+    # Save the user model
+    save!
+    
+    # Send the password reset email
+    UserMailer.password_reset(self).deliver
+  end
+
+  def generate_token(column)
+    begin
+      # Use the SecureRandom class to generate a random string
+      self[column] = SecureRandom.urlsafe_base64
+    end while User.exists?(column => self[column])
+  end
+
   private
     def create_remember_token
+      # Use the SecureRandom class to generate a random string
       self.remember_token = SecureRandom.urlsafe_base64
     end
 end
